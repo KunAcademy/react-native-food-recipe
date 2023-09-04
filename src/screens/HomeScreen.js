@@ -14,24 +14,44 @@ import {
 import { BellIcon, MagnifyingGlassIcon } from "react-native-heroicons/outline";
 import Categories from '../components/categories'
 import axios from "axios";
+import Recipe from "../components/recipe";
 export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState('');
   const [categories, setCategories] = useState([]);
+  const [meals, setMeals] = useState([]);
 
   useEffect(() => {
     getCategories();
+    getRecipe();
   }, [])
 
   const getCategories = async () => {
     try {
       const response = await axios.get('https://themealdb.com/api/json/v1/1/categories.php')
-      console.log('response:', response.data)
+  
       if (response && response.data) {
         setCategories(response.data.categories)
       }
     } catch (error) {
       console.log('error +', error)
     }
+  }
+
+  const getRecipe = async (category = 'Beef') => {
+    try {
+      const response = await axios.get(`https://themealdb.com/api/json/v1/1/filter.php?c=${category}`)
+      if (response && response.data) {
+        setMeals(response.data.meals)
+      }
+    } catch (error) {
+      console.log('error +', error)
+    }
+  }
+
+  const handleChangeCategory = category => {
+    getRecipe(category);
+    setActiveCategory(category);
+    setMeals([]);
   }
 
   return (
@@ -84,7 +104,13 @@ export default function HomeScreen() {
         </View>
 
         <View>
-          <Categories categories={categories} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />          
+          {categories?.length > 0 && (
+            <Categories handleChangeCategory={handleChangeCategory} categories={categories} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />          
+          )}
+        </View>
+
+        <View>
+            <Recipe meals={meals} categories={categories} />
         </View>
       </ScrollView>
     </View>
